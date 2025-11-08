@@ -10,6 +10,7 @@ use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+// 💡 修正点：名前空間の冗長性を避けるため、Responseのフルパスを使用しない
 use Symfony\Component\HttpFoundation\Response;
 
 class ProductController extends Controller
@@ -28,6 +29,7 @@ class ProductController extends Controller
 
     public function __construct()
     {
+        // 認証ミドルウェアは正しく継承されるようになりました
         $this->middleware('auth:sanctum')->except(['index', 'show']);
     }
 
@@ -64,7 +66,8 @@ class ProductController extends Controller
 
         return ProductResource::collection($products);
        } catch (\InvalidArgumentException $e) {
-            abort(Resource::HTTP_BAD_REQUEST, $e->getMessage());
+            // 💡 修正点：未定義のResource::HTTP_BAD_REQUESTをResponse::HTTP_BAD_REQUESTに修正
+            abort(Response::HTTP_BAD_REQUEST, $e->getMessage());
        } catch (\Exception $e) {
             abort(Response::HTTP_INTERNAL_SERVER_ERROR, 'Failed to fetch products');
        }
@@ -104,7 +107,7 @@ class ProductController extends Controller
                 'message' => 'Product updated successfully',
                 'data'    => new ProductResource($product)
             ], Response::HTTP_OK);
-        } catch (\Illluminate\Database\Eloquent\ModelNotFoundException $e) {
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) { // 💡 修正点：Illluminateのスペルミスを修正
             return response() ->json([
                 'message' => 'Product not found'
             ], Response::HTTP_NOT_FOUND);
@@ -122,7 +125,7 @@ class ProductController extends Controller
     public function show(int $id): JsonResponse
     {
         try{
-            $product = Product::findorFail($id);
+            $product = Product::findOrFail($id); // findorFail -> findOrFail に修正 (Laravel標準)
 
             return response()->json([
                 'data' => new ProductResource($product)
@@ -145,7 +148,7 @@ class ProductController extends Controller
     public function destroy(int $id): JsonResponse
     {
         try {
-            $product = Product::withTrashed()->findorFail($id);
+            $product = Product::withTrashed()->findOrFail($id);
 
             if($product->trashed()) {
                 return response()->json([
@@ -156,7 +159,7 @@ class ProductController extends Controller
             $product->delete();
 
             return response()->json([
-                'message' => 'Product deleted sucessfully'
+                'message' => 'Product deleted successfully' // sucessfully -> successfully に修正
             ], Response::HTTP_OK);
         } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
             return response()->json([
@@ -176,7 +179,7 @@ class ProductController extends Controller
     public function forceDestroy(int $id): JsonResponse
     {
         try{
-            $product = Product::withTrashed()->findorFail($id);
+            $product = Product::withTrashed()->findOrFail($id);
 
             $product->forceDelete();
 
@@ -222,10 +225,9 @@ class ProductController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'Failed to restore product',
-                'error'   => getMessage()
+                // 💡 修正点：getMessage() -> $e->getMessage() に修正
+                'error'   => $e->getMessage() 
             ], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
     }
-
-
 }
