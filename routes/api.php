@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\AuthController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Middleware\ApiAuthenticate;
+use App\Http\Controllers\Api\N8nController;
 
 /*
 |--------------------------------------------------------------------------
@@ -33,6 +34,9 @@ Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth:sanc
 Route::get('/products', [ProductController::class, 'index']);
 // 個別商品の閲覧
 Route::get('/products/{id}', [ProductController::class, 'show']);
+
+//n8nワークフローをトリガーするためのPOSTエンドポイントを定義する
+Route::post('/trigger-n8n', [N8nController::class, 'triggerN8nWorkflow']);
 
 
 // 【認証済みアクセス】: 有効なAPIトークンが必須 (auth:sanctum)
